@@ -1,0 +1,114 @@
+import random
+
+class Weapon:
+    def __init__(self, name, damage, special_damage, mana_cost, effect=None):
+        self.name = name
+        self.damage = damage
+        self.special_damage = special_damage
+        self.mana_cost = mana_cost
+        self.effect = effect
+
+
+
+sword = Weapon("Меч", damage=10, special_damage=20, mana_cost=10)
+fire_staff = Weapon("Посох огня", damage=8, special_damage=15, mana_cost=12, effect="burn")
+
+weapons = [sword, fire_staff]
+
+
+class Character:
+    def __init__(self, name, hp, mana, weapon):
+        self.name = name
+        self.hp = hp
+        self.mana = mana
+        self.weapon = weapon
+        self.status_effects = {}
+
+
+    def attack(self, target):
+        print(f"{self.name} атакует {target.name} и наносит {self.weapon.damage} урона!")
+        target.hp -= self.weapon.damage
+
+
+    def special_attack(self, target):
+        if self.mana >= self.weapon.mana_cost:
+            self.mana -= self.weapon.mana_cost
+            print(f"{self.name} использует спецатаку {self.weapon.name} и наносит {self.weapon.special_damage} урона!")
+            target.hp -= self.weapon.special_damage
+
+
+            if self.weapon.effect == "burn":
+                target.status_effects["burn"] = 2
+                print(f"{target.name} загорелся! Будет получать 5 урона каждый ход.")
+        else:
+            print(f"у {self.name}а не хватает маны для спецатаки!")
+
+    def apply_status_effects(self):
+        if "burn" in self.status_effects:
+            print(f"{self.name} горит! Получает 5 урона.")
+            self.hp -= 5
+            self.status_effects["burn"] -= 1
+            if self.status_effects["burn"] <= 0:
+                del self.status_effects["burn"]
+
+
+
+
+enemy1 = Character("Гоблин", hp=40, mana=15, weapon=sword)
+enemy2 = Character("Маг тьмы", hp=50, mana=20, weapon=fire_staff)
+enemies = [enemy1, enemy2]
+
+
+print("Выберите оружие:")
+for i, weapon in enumerate(weapons):
+    print(
+        f"{i + 1}. {weapon.name} (Урон: {weapon.damage}, Спецатака: {weapon.special_damage}, Мана: {weapon.mana_cost})")
+
+weapon_choice = int(input("Введите номер оружия: ")) - 1
+player = Character("игрок", hp=60, mana=30, weapon=weapons[weapon_choice])
+
+for enemy in enemies:
+    print("\n==== НАЧАЛО БОЯ ====")
+    print("\n")
+    print(f"Ваш противник: {enemy.name} (HP: {enemy.hp}, Мана: {enemy.mana})")
+
+    while player.hp > 0 and enemy.hp > 0:
+
+        print(f"\nВаш HP: {player.hp}, Мана: {player.mana}")
+        print(f"HP {enemy.name}: {enemy.hp}, Мана: {enemy.mana}")
+
+        player.apply_status_effects()
+        enemy.apply_status_effects()
+
+        print("\nВаш ход:")
+        print("1. Обычная атака")
+        print("2. Спецатака")
+        action = input("Выберите действие: ")
+
+        if action == "1":
+            player.attack(enemy)
+        elif action == "2":
+            player.special_attack(enemy)
+        else:
+            print("Неверный ввод!")
+
+
+        if enemy.hp <= 0:
+            print(f"{enemy.name} повержен!")
+            break
+
+
+        print(f"\nХод {enemy.name}:")
+        if enemy.mana >= enemy.weapon.mana_cost and random.choice([True, False]):
+            enemy.special_attack(player)
+        else:
+            enemy.attack(player)
+
+
+        if player.hp <= 0:
+            print("Вы проиграли!")
+            exit()
+
+    print("Вы победили! Переход к следующему сражению...")
+
+print("\nПоздравляем! Вы победили всех врагов!")
